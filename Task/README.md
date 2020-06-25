@@ -10,3 +10,8 @@
 學校計中下載cisco軟件：https://www.tik.uni-stuttgart.de/en/support/service-manuals/vpn/
 系上計中步驟http://www.zdi.uni-stuttgart.de/zdi/vpn/anyconnect.html
 帳號：example (如果mail是 exmaple@studi.informatik.uni-stuttgart.de)
+
+
+# Respberry Pi課程
+[Getting Started with Your Raspberry Pi](https://www.futurelearn.com/courses/getting-started-with-your-raspberry-pi)
+[Networking with Python: Socket Programming for Communication](https://www.futurelearn.com/courses/networking-with-python-socket-programming-for-communication)
