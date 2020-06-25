@@ -3,6 +3,10 @@ team8:Soahu2Ai
 
 ssh team8@129.69.210.180
 
+# Programming Java on Raspberry Pi
+[Java Programming on Raspberry Pi - Hello Pi!!!](https://youtu.be/lzeBrm2cGUQ)
+
+
 
 # setup remote folder on local computer via SSHFS
 sshfs teamXX@129.69.210.XXX:/home/teamXX mounting_point
