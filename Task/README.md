@@ -6,6 +6,8 @@ ssh team8@129.69.210.180
 
 # setup remote folder on local computer via SSHFS
 sshfs teamXX@129.69.210.XXX:/home/teamXX mounting_point
+
+安裝教學: 
 - [教學1](https://medium.com/@tzhenghao/writing-remote-code-on-a-mac-with-sshfs-c62d64bf9ef9)
 - [教學2](https://www.jianshu.com/p/c40d135db305)
 
