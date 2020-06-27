@@ -21,10 +21,13 @@ Java(TM) SE Runtime Environment (build 1.8.0_65-b17)
 ## 1.VPN to Informatik
 - 學校計中下載cisco軟件：https://www.tik.uni-stuttgart.de/en/support/service-manuals/vpn/
 - 系上計中步驟http://www.zdi.uni-stuttgart.de/zdi/vpn/anyconnect.html
+vpn.informatik.uni-stuttgart.de
 - 帳號：example (如果mail是 exmaple@studi.informatik.uni-stuttgart.de)
 
 ## 2.Setup remote folder on local computer via SSHFS
-$ sshfs team8@129.69.210.180:/home/team8 mounting_point
+1. $ sshfs team8@129.69.210.180:/home/team8 #mounting_point
+(ex. sshfs team8@129.69.210.180:/home/team8 remote_shfs)
+2. 輸入密碼
 
 sshfs安裝教學: 
 - [sshfs install on Mac 教學1](https://medium.com/@tzhenghao/writing-remote-code-on-a-mac-with-sshfs-c62d64bf9ef9)
