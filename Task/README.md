@@ -25,9 +25,16 @@ vpn.informatik.uni-stuttgart.de
 - 帳號：example (如果mail是 exmaple@studi.informatik.uni-stuttgart.de)
 
 ## 2.Setup remote folder on local computer via SSHFS
-1. $ sshfs team8@129.69.210.180:/home/team8 #mounting_point
+1. 用sshfs mount遠端資料夾(可以用local編譯器)比較方便
 (ex. sshfs team8@129.69.210.180:/home/team8 remote_shfs)
+```
+$ sshfs team8@129.69.210.180:/home/team8 #mounting_point
+```
+
 2. 輸入密碼 $Soahu2Ai
+```
+$ Soahu2Ai
+```
 
 sshfs安裝教學: 
 - [sshfs install on Mac 教學1](https://medium.com/@tzhenghao/writing-remote-code-on-a-mac-with-sshfs-c62d64bf9ef9)
@@ -38,7 +45,10 @@ sshfs安裝教學:
 ```
 $ssh team8@129.69.210.180
 ```
-2. 輸入密碼 $Soahu2Ai
+2. 輸入密碼 
+```
+$ Soahu2Ai
+```
 - 成功登入後會顯示:
 ```
 Debian GNU/Linux comes with ABSOLUTELY NO WARRANTY, to the extent
