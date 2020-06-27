@@ -55,8 +55,14 @@ Debian GNU/Linux comes with ABSOLUTELY NO WARRANTY, to the extent
 permitted by applicable law.
 Last login: Thu Jun 25 22:33:33 2020 from 129.69.185.164
 ```
-3. compile $javac HelloWorld.java
-4. run $java HelloWorld
+3. compile 
+```
+$ javac HelloWorld.java
+```
+4. run 
+```
+$ java HelloWorld
+```
 
 
 # Respberry Pi課程
