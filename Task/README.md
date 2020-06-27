@@ -27,11 +27,27 @@ vpn.informatik.uni-stuttgart.de
 ## 2.Setup remote folder on local computer via SSHFS
 1. $ sshfs team8@129.69.210.180:/home/team8 #mounting_point
 (ex. sshfs team8@129.69.210.180:/home/team8 remote_shfs)
-2. 輸入密碼
+2. 輸入密碼 $Soahu2Ai
 
 sshfs安裝教學: 
 - [sshfs install on Mac 教學1](https://medium.com/@tzhenghao/writing-remote-code-on-a-mac-with-sshfs-c62d64bf9ef9)
 - [sshfs install on Mac 教學2](https://www.jianshu.com/p/c40d135db305)
+
+## 3. 編譯java
+1. 建立連線 
+```
+$ssh team8@129.69.210.180
+```
+2. 輸入密碼 $Soahu2Ai
+- 成功登入後會顯示:
+```
+Debian GNU/Linux comes with ABSOLUTELY NO WARRANTY, to the extent
+permitted by applicable law.
+Last login: Thu Jun 25 22:33:33 2020 from 129.69.185.164
+```
+3. compile $javac HelloWorld.java
+4. run $java HelloWorld
+
 
 # Respberry Pi課程
 - [Getting Started with Your Raspberry Pi](https://www.futurelearn.com/courses/getting-started-with-your-raspberry-pi)
