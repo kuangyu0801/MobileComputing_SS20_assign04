@@ -72,6 +72,8 @@ $ java HelloWorld
 
 # Others
 [How to install VNC on Raspberry pi | Remote Access](https://www.youtube.com/watch?v=JZ1pdVVTMrw)
+# Java Tutorial
+[UDP](https://docs.oracle.com/javase/tutorial/networking/datagrams/clientServer.html)
 
 # Task 1
 1. Implement flooding: 參考老師lec9
