@@ -72,3 +72,24 @@ $ java HelloWorld
 
 # Others
 [How to install VNC on Raspberry pi | Remote Access](https://www.youtube.com/watch?v=JZ1pdVVTMrw)
+
+# Task 1
+1. Implement flooding: 參考老師lec9
+2. Discover all nodes and their connections in the network (topology)
+    - 是不是代表每個收到的node都要回傳message? sender要能夠辨識然後去除duplicate
+3. Send message from any node to all nodes: 
+    - 語意不明確, 我們是要透過node-A send message to all node? 
+    - 還是說可以透過node-A去involve node-B send message to all node? 
+    
+4. Draw graph of network including latency between each node
+    - 如何測量latency? using timer in java?
+
+# UDP
+- server可以透過packet知道client的原始位置
+
+# Task 2
+1. Implement DSR
+2. Pick any host as a source and send Hello World to all other nodes.
+3. No hard-coded or static source
+4. How long does route discovery need? (Optional, compare with/out
+optimization)
