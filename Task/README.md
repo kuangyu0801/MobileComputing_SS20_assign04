@@ -3,6 +3,7 @@
 - Done 如何在Raspberry pi開發並且運行Java
 - 如何實踐算法？
 - Java Command-line
+- Message要用什麼 Class來傳
 
 # Workflow
 1. 連上infomatik vpn
@@ -75,6 +76,21 @@ $ java HelloWorld
 # Java Tutorial
 [UDP](https://docs.oracle.com/javase/tutorial/networking/datagrams/clientServer.html)
 
+
+# Debug
+每個node都要能夠把log輸出成文字檔
+Log Format(ex log in node B)
+- Time -Send/Receive- Message-Content - Message-Header[Source Address, Destination Address, Time Stamp] 
+- 1000ms  -Receive  - "Who is my neighbor" - [A, Broadcast, 500ms]
+- 3000ms  -Send  - "I'm your neighbor" - [B, A, 3000ms]
+- 4000ms  -Send  - "Who is my neighbor" - [B, Broadcast, 4000ms]
+- 5000ms  -Send  - "Hello World!"-"ABCDF" - - [B, C, 5000ms]
+
+
+Message types: NEIGHBOR-REQ, NEIGHBOR-RLY, DSR-REQ, DSR-RLY, DATA
+DATA: MSG-HEADER
+ex  "Hello World!"-"ABCDF"
+
 # Task 1
 1. Implement flooding: 參考老師lec9
 2. Discover all nodes and their connections in the network (topology)
@@ -84,14 +100,15 @@ $ java HelloWorld
     - 還是說可以透過node-A去involve node-B send message to all node? 
     
 4. Draw graph of network including latency between each node
-    - 如何測量latency? using timer in java?
+    - 如何測量latency? using timer in java? Use Raspberry Pi System-Timer
 
 # UDP
 - server可以透過packet知道client的原始位置
 
 # Task 2
 1. Implement DSR
-2. Pick any host as a source and send Hello World to all other nodes.
+2. Pick any host as a source and send Hello World to all other nodes. (Using Route from DSR)
+"Hello World!"
 3. No hard-coded or static source
 4. How long does route discovery need? (Optional, compare with/out
 optimization)

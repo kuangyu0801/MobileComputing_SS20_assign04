@@ -28,6 +28,8 @@ public class UDPServer {
             DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, IPAddress, port);
             serverSocket.send(sendPacket);
             System.out.println(TAG_SEND + capitalizedSentence);
+
+            // TODO: add logging method
         }
     }
 }
