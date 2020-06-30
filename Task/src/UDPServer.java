@@ -8,6 +8,7 @@ public class UDPServer {
     final static int PORT = 5008;
     final static String TAG_RCV = "[RCV]";
     final static String TAG_SEND = "[SEND]";
+
     public static void main(String[] args) throws IOException {
         DatagramSocket serverSocket = new DatagramSocket(PORT);
         byte[] receiveData = new byte[1024];

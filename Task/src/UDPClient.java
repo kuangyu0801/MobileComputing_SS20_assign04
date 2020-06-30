@@ -5,6 +5,7 @@ public class UDPClient {
     final static int PORT = 5008;
     final static String TAG_RCV = "[RCV]";
     final static String TAG_SEND = "[SEND]";
+
     public static void main(String[] args) throws IOException {
         DatagramSocket clientSocket = new DatagramSocket();
         InetAddress IPAddress = InetAddress.getByName("localhost");
@@ -22,7 +23,7 @@ public class UDPClient {
         clientSocket.receive(receivePacket);
 
         String modifiedSentence = new String(receivePacket.getData());
-        System.out.println(TAG_SEND + modifiedSentence);
+        System.out.println(TAG_RCV + modifiedSentence);
         clientSocket.close();
     }
 }
