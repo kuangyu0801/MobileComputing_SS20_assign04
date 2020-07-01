@@ -1,28 +1,37 @@
 # Open Issue
-- Done 如何透過marvin連接到Raspberry pi
-- Done 如何在Raspberry pi開發並且運行Java
-- 如何實踐算法？
-- Java Command-line
-- Message要用什麼 Class來傳
+1. 使用以下只會得到TCP Loopback interface, 是不是要用etho0的ip位置當log file才比較好
+2. 如何實踐算法？
+```  
+InetAddress localhost = InetAddress.getLocalHost();
+localAddress = localhost.getHostAddress();
+Display name: TCP Loopback interface
+Name: lo
+InetAddress: /127.0.0.1
+```
+## Done
+- 如何透過marvin連接到Raspberry pi? vpn連到記中再ssh到不同的機器
+- 如何在Raspberry pi開發並且運行Java? 用remote filesystem 把java file從local複製過去, 執行compile, execute
+- Done Java Command-line
+- Done Message要用什麼 Class來傳? 用String就好！
+
+# Password
+team8:Soahu2Ai
+$ ssh team8@129.69.210.180
+
+# Connection
+196-197
 
 # Workflow
 1. 連上infomatik vpn
 2. 連上遠端機器, 設定remote file system
 3. 開始編譯java
 
-
-# Password
-team8:Soahu2Ai
-$ ssh team8@129.69.210.180
-
-# JDM版本
-java version "1.8.0_65"
-Java(TM) SE Runtime Environment (build 1.8.0_65-b17)
-
 ## 1.VPN to Informatik
 - 學校計中下載cisco軟件：https://www.tik.uni-stuttgart.de/en/support/service-manuals/vpn/
 - 系上計中步驟http://www.zdi.uni-stuttgart.de/zdi/vpn/anyconnect.html
+```
 vpn.informatik.uni-stuttgart.de
+```
 - 帳號：example (如果mail是 exmaple@studi.informatik.uni-stuttgart.de)
 
 ## 2.Setup remote folder on local computer via SSHFS
@@ -30,6 +39,13 @@ vpn.informatik.uni-stuttgart.de
 (ex. sshfs team8@129.69.210.180:/home/team8 remote_shfs)
 ```
 $ sshfs team8@129.69.210.180:/home/team8 #mounting_point
+// example
+$ sshfs team8@129.69.210.180:/home/team8 remote_180
+sshfs team8@129.69.210.174:/home/team8 remote_174
+sshfs team8@129.69.210.180:/home/team8 remote_180
+sshfs team8@129.69.210.185:/home/team8 remote_185
+sshfs team8@129.69.210.196:/home/team8 remote_196
+sshfs team8@129.69.210.197:/home/team8 remote_197
 ```
 
 2. 輸入密碼 $Soahu2Ai
@@ -45,6 +61,10 @@ sshfs安裝教學:
 1. 建立連線 
 ```
 $ssh team8@129.69.210.180
+ssh team8@129.69.210.185
+ssh team8@129.69.210.174
+ssh team8@129.69.210.196
+ssh team8@129.69.210.197
 ```
 2. 輸入密碼 
 ```
@@ -66,6 +86,10 @@ $ java HelloWorld
 ```
 
 
+
+
+
+
 # Respberry Pi課程
 - [Getting Started with Your Raspberry Pi](https://www.futurelearn.com/courses/getting-started-with-your-raspberry-pi)
 - [Networking with Python: Socket Programming for Communication](https://www.futurelearn.com/courses/networking-with-python-socket-programming-for-communication)
@@ -73,12 +97,17 @@ $ java HelloWorld
 
 # Others
 [How to install VNC on Raspberry pi | Remote Access](https://www.youtube.com/watch?v=JZ1pdVVTMrw)
+[Linux 常用網路指令](http://linux.vbird.org/linux_server/0140networkcommand.php#network_setup_ip)
 
 # Java Tutorial
-[Working with UDP Datagram Sockets](https://www.geeksforgeeks.org/working-udp-datagramsockets-java/)
-[DatagramPacket](https://www.geeksforgeeks.org/java-net-datagrampacket-class-java/)
-[UDP](https://docs.oracle.com/javase/tutorial/networking/datagrams/clientServer.html)
-[Getting one's IP](https://www.geeksforgeeks.org/java-program-find-ip-address-computer/)
+- [Working with UDP Datagram Sockets](https://www.geeksforgeeks.org/working-udp-datagramsockets-java/)
+- [DatagramPacket](https://www.geeksforgeeks.org/java-net-datagrampacket-class-java/)
+- [UDP](https://docs.oracle.com/javase/tutorial/networking/datagrams/clientServer.html)
+- [Getting one's IP](https://www.geeksforgeeks.org/java-program-find-ip-address-computer/)
+- [Listing Network Interface Addresses](https://docs.oracle.com/javase/tutorial/networking/nifs/listing.html)
+## JDM版本
+java version "1.8.0_65"
+Java(TM) SE Runtime Environment (build 1.8.0_65-b17)
 
 # Debug
 每個node都要能夠把log輸出成文字檔
