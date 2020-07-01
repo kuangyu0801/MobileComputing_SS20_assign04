@@ -73,9 +73,12 @@ $ java HelloWorld
 
 # Others
 [How to install VNC on Raspberry pi | Remote Access](https://www.youtube.com/watch?v=JZ1pdVVTMrw)
-# Java Tutorial
-[UDP](https://docs.oracle.com/javase/tutorial/networking/datagrams/clientServer.html)
 
+# Java Tutorial
+[Working with UDP Datagram Sockets](https://www.geeksforgeeks.org/working-udp-datagramsockets-java/)
+[DatagramPacket](https://www.geeksforgeeks.org/java-net-datagrampacket-class-java/)
+[UDP](https://docs.oracle.com/javase/tutorial/networking/datagrams/clientServer.html)
+[Getting one's IP](https://www.geeksforgeeks.org/java-program-find-ip-address-computer/)
 
 # Debug
 每個node都要能夠把log輸出成文字檔
