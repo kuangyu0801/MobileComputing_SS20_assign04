@@ -1,10 +1,9 @@
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.net.DatagramPacket;
-import java.net.DatagramSocket;
-import java.net.InetAddress;
-import java.net.SocketException;
+import java.net.*;
+import java.util.Collections;
+import java.util.Enumeration;
 
 public class UDPServer {
     final static int PORT = 5008;
@@ -21,7 +20,12 @@ public class UDPServer {
         InetAddress localhost = InetAddress.getLocalHost();
         localAddress = localhost.getHostAddress();
         logFile = localAddress + ".txt";
-        System.out.println("System IP Address : " + localAddress);
+        System.out.println("Local Host Address: " + localAddress);
+        System.out.println("Local Canonical Host Name: " + localhost.getCanonicalHostName());
+        System.out.println("Local Host Name: " + localhost.getHostName());
+        // TODO: for linux en0 should be replaced with eth0 (ethernet) wlan0 (wireless)
+        NetworkInterface en0 = NetworkInterface.getByName("en0");
+        displayInterfaceInformation(en0);
 
         while (true) {
             DatagramPacket receivePacket = new DatagramPacket(receiveData, receiveData.length);
@@ -51,5 +55,15 @@ public class UDPServer {
         fos.write(IPAddress.toString().getBytes());
         fos.write("\r".getBytes());
         fos.close();
+    }
+
+    static void displayInterfaceInformation(NetworkInterface netint) throws SocketException {
+        System.out.println("Display name:" + netint.getDisplayName());
+        System.out.println("Name: " + netint.getName());
+        Enumeration<InetAddress> inetAddresses = netint.getInetAddresses();
+        for (InetAddress inetAddress : Collections.list(inetAddresses)) {
+            System.out.println("InetAddress: " + inetAddress.getHostAddress());
+        }
+        System.out.println();
     }
 }
