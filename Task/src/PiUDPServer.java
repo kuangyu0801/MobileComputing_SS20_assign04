@@ -39,35 +39,38 @@ public class PiUDPServer {
             DatagramPacket receivePacket = new DatagramPacket(receiveData, receiveData.length);
             serverSocket.receive(receivePacket);
             serverSocket.setBroadcast(true);
-            // DONE: add logging method
-            writeToLog(receivePacket);
 
             String data = new String(receivePacket.getData());
+            writeToLog(TAG_RCV + data);
             System.out.println(TAG_RCV + data);
 
             // if the message has not been received before, then broadcast it
             if (!receivedMessages.contains(data)) {
                 receivedMessages.add(data);
+                // 0: src, 1: dst, 2: time, 3: msg
                 String[] infos = data.split(SPLITER);
                 String msg = infos[3];
+                String dst = infos[1];
                 InetAddress IPAddress = receivePacket.getAddress();
                 neighbors.add(IPAddress.getHostName());
                 print(neighbors);
-                int port = receivePacket.getPort();
 
-                sendData = data.getBytes();
-                DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, IPAddress, port);
-                serverSocket.send(sendPacket);
-                System.out.println(TAG_SEND + data);
+                // continue broadcast if dst is not local address
+                if (!localAddress.equals(dst)) {
+                    int port = receivePacket.getPort();
+                    sendData = data.getBytes();
+                    DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, IPAddress, port);
+                    serverSocket.send(sendPacket);
+                    System.out.println(TAG_SEND + data);
+                    writeToLog(TAG_SEND + data);
+                }
             }
         }
     }
 
-    private static void writeToLog(DatagramPacket datagramPacket) throws IOException {
+    private static void writeToLog(String str) throws IOException {
         FileOutputStream fos = new FileOutputStream(logFile, true);
-        fos.write("TAG_RCV".getBytes());
-        InetAddress IPAddress = datagramPacket.getAddress();
-        fos.write(IPAddress.toString().getBytes());
+        fos.write(str.getBytes());
         fos.write("\r".getBytes());
         fos.close();
     }
