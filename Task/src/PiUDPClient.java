@@ -3,7 +3,11 @@ import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
 
-public class UDPClient {
+/**
+ * This class is identical to UDPClient except for NetworkInterface Name eth0
+ * */
+
+public class PiUDPClient {
     final static int PORT = 5008;
     final static String TAG_RCV = "[RCV]";
     final static String TAG_SEND = "[SEND]";

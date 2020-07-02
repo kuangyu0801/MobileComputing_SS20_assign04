@@ -7,7 +7,11 @@ import java.net.*;
 import java.util.Collections;
 import java.util.Enumeration;
 
-public class UDPServer {
+/**
+ * This class is identical to UDPServer except for NetworkInterface Name eth0
+ * */
+
+public class PiUDPServer {
     final static int PORT = 5008;
     final static String TAG_RCV = "[RCV]";
     final static String TAG_SEND = "[SEND]";
