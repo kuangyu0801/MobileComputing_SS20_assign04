@@ -19,7 +19,7 @@ public class PiUDPClient {
 
     public static void main(String[] args) throws IOException {
 
-        DatagramSocket clientSocket = new DatagramSocket();
+        DatagramSocket clientSocket = new DatagramSocket(PORT);
         // enable broadcast
         clientSocket.setBroadcast(true);
         System.out.println(args[0]);

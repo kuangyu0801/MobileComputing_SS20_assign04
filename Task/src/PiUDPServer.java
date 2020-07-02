@@ -35,7 +35,6 @@ public class PiUDPServer {
         while (true) {
             DatagramPacket receivePacket = new DatagramPacket(receiveData, receiveData.length);
             serverSocket.receive(receivePacket);
-            serverSocket.setBroadcast(true);
 
             String data = new String(receivePacket.getData());
             writeToLog(TAG_RCV + data);
@@ -55,8 +54,10 @@ public class PiUDPServer {
                 // continue broadcast if dst is not local address
                 if (!localAddress.equals(dst)) {
                     int port = receivePacket.getPort();
+                    System.out.println("received port:" + port);
                     sendData = data.getBytes();
-                    DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, InetAddress.getByName(BROADCAST_IP), port);
+                    DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, InetAddress.getByName(BROADCAST_IP), PORT);
+                    serverSocket.setBroadcast(true);
                     serverSocket.send(sendPacket);
                     System.out.println(TAG_SEND + data);
                     writeToLog(TAG_SEND + data);
