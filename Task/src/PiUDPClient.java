@@ -18,7 +18,7 @@ public class PiUDPClient {
             "192.168.210.196", "192.168.210.197"};
 
     public static void main(String[] args) throws IOException {
-
+        // TODO: how to measure time delay
         DatagramSocket clientSocket = new DatagramSocket(PORT);
         // enable broadcast
         clientSocket.setBroadcast(true);
