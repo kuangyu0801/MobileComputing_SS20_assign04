@@ -18,13 +18,14 @@ public class UDPClient {
         DatagramSocket clientSocket = new DatagramSocket();
         // enable broadcast
         clientSocket.setBroadcast(true);
-
+        System.out.println(args[0]);
         byte[] receiveData = new byte[1024];
         byte[] sendData = new byte[1024];
 
         String msg = "Hello, World!";
         String src = getIP("en0");
-        String dst = ALL_ADDRS[4];
+        String dst = ALL_ADDRS[Integer.parseInt(args[0])]; // use the input argument as destination
+        System.out.println("dst:" + dst);
         String time = LocalTime.now().toString();
         String data =  src + SPLITER + dst + SPLITER + time + SPLITER + msg;
         sendData = data.getBytes();

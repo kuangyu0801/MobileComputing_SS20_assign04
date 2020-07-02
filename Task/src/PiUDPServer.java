@@ -56,7 +56,7 @@ public class PiUDPServer {
                 if (!localAddress.equals(dst)) {
                     int port = receivePacket.getPort();
                     sendData = data.getBytes();
-                    DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, IPAddress, port);
+                    DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, InetAddress.getByName(BROADCAST_IP), port);
                     serverSocket.send(sendPacket);
                     System.out.println(TAG_SEND + data);
                     writeToLog(TAG_SEND + data);
