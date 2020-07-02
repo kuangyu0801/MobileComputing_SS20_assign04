@@ -1,6 +1,7 @@
 # Open Issue
 1. 使用以下只會得到TCP Loopback interface, 是不是要用etho0的ip位置當log file才比較好
 2. 如何實踐算法？
+3. 如何量delay round trip time
 ```  
 InetAddress localhost = InetAddress.getLocalHost();
 localAddress = localhost.getHostAddress();
@@ -13,6 +14,7 @@ InetAddress: /127.0.0.1
 - 如何在Raspberry pi開發並且運行Java? 用remote filesystem 把java file從local複製過去, 執行compile, execute
 - Done Java Command-line
 - Done Message要用什麼 Class來傳? 用String就好！
+- Broadcast收不到? 因為port沒有設好, 導致說第二層broadcast會傳錯port
 
 # Password
 team8:Soahu2Ai
@@ -87,7 +89,10 @@ $ java HelloWorld
 
 
 
-
+# 參考
+某屆大神答案
+https://github.com/GeorgeEskandar/Ad-Hoc-Network-routing-algorithm
+是使用hard-code的方式, 每台機器都綁定一份專屬自己ip的code(非常傷神), 直接從網卡parse data就可以！
 
 
 # Respberry Pi課程
