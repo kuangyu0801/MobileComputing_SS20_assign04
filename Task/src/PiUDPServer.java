@@ -1,10 +1,7 @@
 
-
-
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.*;
-import java.util.Collections;
 import java.util.Enumeration;
 import java.util.HashSet;
 import java.util.Set;
@@ -63,14 +60,19 @@ public class PiUDPServer {
                     serverSocket.send(sendPacket);
                     System.out.println(TAG_SEND + data);
                     writeToLog(TAG_SEND + data);
+                    System.out.println("Not Destination, continue to broadcast ");
+                } else{
+                    System.out.println("Reached destination, will not broadcast ");
                 }
+            } else {
+                System.out.println("Message Duplicated, will not broadcast");
             }
         }
     }
 
-    private static void writeToLog(String str) throws IOException {
+    private static void writeToLog(String tag) throws IOException {
         FileOutputStream fos = new FileOutputStream(logFile, true);
-        fos.write(str.getBytes());
+        fos.write(tag.getBytes());
         fos.write("\r".getBytes());
         fos.close();
     }
