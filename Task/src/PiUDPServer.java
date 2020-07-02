@@ -6,6 +6,8 @@ import java.io.IOException;
 import java.net.*;
 import java.util.Collections;
 import java.util.Enumeration;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * This class is identical to UDPServer except for NetworkInterface Name eth0
@@ -13,44 +15,51 @@ import java.util.Enumeration;
 
 public class PiUDPServer {
     final static int PORT = 5008;
+    final static String SPLITER = "_";
     final static String TAG_RCV = "[RCV]";
     final static String TAG_SEND = "[SEND]";
+    final static String BROADCAST_IP = "192.168.210.255";
+    final static String[] ALL_ADDRS = {
+            "192.168.210.174", "192.168.210.180", "192.168.210.185",
+            "192.168.210.196", "192.168.210.197"};
     private static String localAddress;
     private static String logFile;
 
     public static void main(String[] args) throws IOException {
         DatagramSocket serverSocket = new DatagramSocket(PORT);
+        HashSet<String> receivedMessages = new HashSet<>();
+        HashSet<String> neighbors = new HashSet<>();
         byte[] receiveData = new byte[1024];
         byte[] sendData = new byte[1024];
 
-        InetAddress localhost = InetAddress.getLocalHost();
-        localAddress = localhost.getHostAddress();
+        localAddress = getIP("wlan0");
         logFile = localAddress + ".txt";
-        System.out.println("Local Host Address: " + localAddress);
-        System.out.println("Local Canonical Host Name: " + localhost.getCanonicalHostName());
-        System.out.println("Local Host Name: " + localhost.getHostName());
-        // TODO: for linux en0 should be replaced with eth0 (ethernet) wlan0 (wireless)
-        NetworkInterface en0 = NetworkInterface.getByName("en0");
-        displayInterfaceInformation(en0);
 
         while (true) {
             DatagramPacket receivePacket = new DatagramPacket(receiveData, receiveData.length);
             serverSocket.receive(receivePacket);
-
+            serverSocket.setBroadcast(true);
             // DONE: add logging method
             writeToLog(receivePacket);
 
-            String sentence = new String(receivePacket.getData());
-            System.out.println(TAG_RCV + sentence);
-            InetAddress IPAddress = receivePacket.getAddress();
-            int port = receivePacket.getPort();
+            String data = new String(receivePacket.getData());
+            System.out.println(TAG_RCV + data);
 
-            String capitalizedSentence = sentence.toUpperCase();
-            sendData = capitalizedSentence.getBytes();
+            // if the message has not been received before, then broadcast it
+            if (!receivedMessages.contains(data)) {
+                receivedMessages.add(data);
+                String[] infos = data.split(SPLITER);
+                String msg = infos[3];
+                InetAddress IPAddress = receivePacket.getAddress();
+                neighbors.add(IPAddress.getHostName());
+                print(neighbors);
+                int port = receivePacket.getPort();
 
-            DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, IPAddress, port);
-            serverSocket.send(sendPacket);
-            System.out.println(TAG_SEND + capitalizedSentence);
+                sendData = data.getBytes();
+                DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, IPAddress, port);
+                serverSocket.send(sendPacket);
+                System.out.println(TAG_SEND + data);
+            }
         }
     }
 
@@ -63,13 +72,18 @@ public class PiUDPServer {
         fos.close();
     }
 
-    static void displayInterfaceInformation(NetworkInterface netint) throws SocketException {
-        System.out.println("Display name:" + netint.getDisplayName());
-        System.out.println("Name: " + netint.getName());
-        Enumeration<InetAddress> inetAddresses = netint.getInetAddresses();
-        for (InetAddress inetAddress : Collections.list(inetAddresses)) {
-            System.out.println("InetAddress: " + inetAddress.getHostAddress());
+    public static String getIP(String name) throws SocketException {
+        NetworkInterface en0 = NetworkInterface.getByName(name);
+        Enumeration<InetAddress> inetAddresses = en0.getInetAddresses();
+        inetAddresses.nextElement();
+        InetAddress inetAddress = inetAddresses.nextElement();
+        return inetAddress.getHostAddress();
+    }
+
+    public static void print(Set<String> set) {
+        System.out.println("All neighbors:");
+        for (String s : set) {
+            System.out.println(s);
         }
-        System.out.println();
     }
 }
