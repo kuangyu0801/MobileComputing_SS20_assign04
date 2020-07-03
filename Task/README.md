@@ -14,7 +14,6 @@ java PiUDPClient 3
 # Open Issue
 1. 使用以下只會得到TCP Loopback interface, 是不是要用etho0的ip位置當log file才比較好
 2. 如何實踐算法？
-3. 如何量delay round trip time
 ```  
 InetAddress localhost = InetAddress.getLocalHost();
 localAddress = localhost.getHostAddress();
@@ -28,6 +27,7 @@ InetAddress: /127.0.0.1
 - Done Java Command-line
 - Done Message要用什麼 Class來傳? 用String就好！
 - Broadcast收不到? 因為port沒有設好, 導致說第二層broadcast會傳錯port
+- 如何量delay round trip time? 相鄰的點互相broadcast手動紀錄，時間差是用network clock的時間計算(Raspbian gets the time from an NTP Server (a "time server").)
 
 # Password
 team8:Soahu2Ai
@@ -151,6 +151,7 @@ ex  "Hello World!"-"ABCDF"
     
 4. Draw graph of network including latency between each node
     - 如何測量latency? using timer in java? Use Raspberry Pi System-Timer
+    - 相鄰的點互相broadcast手動紀錄，時間差是用network clock的時間計算(Raspbian gets the time from an NTP Server (a "time server").)
 
 # UDP
 - server可以透過packet知道client的原始位置
@@ -162,4 +163,106 @@ ex  "Hello World!"-"ABCDF"
 3. No hard-coded or static source
 4. How long does route discovery need? (Optional, compare with/out
 optimization)
+
+
+# DSR Algorithm
+
+```
+
+void DSR() {
+	//format: type, src, dst, time, msg, path
+	// RREQ, S, D, 999, Hello World, 
+
+	// S ->E -> F - > J -> D
+	if (!isDuplicate(receiveData)){
+		if (receiveData.type == RREQ) {
+	        // reach destination D and only reply the first received RREQ
+	        if(receiveData.dst == myIP) {
+	            // add dst to path and send back RREP to src
+	            sendData = new Data();
+
+	            // {S_E_F_J_D}
+	            sendData.path = receiveData.path().add(myIP);
+	            sendData.src = myIP;
+	            sendData.dst = receiveData.src;
+	            directSend(sendData, receiveData.path().pop());
+	            // (S, reverse{S_E_F_J_D})
+	            pathMap.put(sendData.dst, sendData.path);
+	        } else { // not destination, broadcast
+	        	sendData = new Data(receiveData);
+	        	sendData.path = receiveData.path().add(myIP);
+	        	broadcast(sendData);
+		    }
+
+		} else if (type == RREP) {
+			if (receiveData.dst == myIP) {
+				// add path to map
+				// (D, {S_E_F_J_D})
+				pathMap.put(receiveData.src, receiveData.path);
+			} else {
+				// ex. we are F, {S_E_F_J_D} -> E
+				next = findFowardReversePath(receiveData.path(), myIP);
+				// forward message
+				directSend(receiveData, next);
+			}
+
+		} else { // DATA
+			if (receiveData.dst == myIP) {
+				// do-nothing
+			} else {
+				// ex. we are F, {S_E_F_J_D} -> J
+				next = findFowardPath(receiveData.path(), myIP);
+				// forward message
+				directSend(receiveData, next);
+			}
+		} 
+	}
+
+}
+
+class Client {
+	public static void Main() {
+		sendData = new Data();
+		sendData.dst = D;
+		if (pathMap.containsKey(sendData.dst) {
+			// pathMap.get(sendData.dst) == {S_E_F_J_D}
+			next = findFowardPath(pathMap.get(sendData.dst), myIP);
+			directSend(sendData, next)
+		} else {
+			broadcast(RREQ, sendData.dst);
+			while (true) {
+				// waiting for DSR result;
+				DSR();
+				if(pathMap.containsKey(sendData.dst)) {
+					break;
+				}
+			}
+			next = findFowardPath(pathMap.get(sendData.dst), myIP);
+			directSend(sendData, next);
+		}
+	}
+}
+
+class Server {
+	public static void Main() {
+		while (true) {
+			DSR();
+		}
+	}	
+}
+
+// pathMap (dst, pathToDst)
+
+boolean isDuplicate(Data data) {
+	// header: type + src + dst + time + msg 
+	Header header = new Header(data);
+	if(receivedHeaderSet.contains(header)) {
+		return false;
+	} else {
+		receivedHeaderSet.put(header);
+	return false;
+}
+
+
+```
 
