@@ -5,7 +5,12 @@ java PiUDPServer
 javac PiUDPClient.java
 java PiUDPClient 3
 ```
-
+# Network TOPOLOGY
+```
+196-197-180-174
+     |   |    |
+     |- 185 - |
+ ```    
 # Open Issue
 1. 使用以下只會得到TCP Loopback interface, 是不是要用etho0的ip位置當log file才比較好
 2. 如何實踐算法？
