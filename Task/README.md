@@ -1,3 +1,11 @@
+# 常用command
+```
+javac PiUDPServer.java
+java PiUDPServer
+javac PiUDPClient.java
+java PiUDPClient 3
+```
+
 # Open Issue
 1. 使用以下只會得到TCP Loopback interface, 是不是要用etho0的ip位置當log file才比較好
 2. 如何實踐算法？
@@ -149,3 +157,4 @@ ex  "Hello World!"-"ABCDF"
 3. No hard-coded or static source
 4. How long does route discovery need? (Optional, compare with/out
 optimization)
+
