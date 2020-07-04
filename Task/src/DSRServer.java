@@ -1,14 +1,23 @@
+import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.*;
 import java.time.LocalTime;
 import java.util.Enumeration;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
 
+
 public class DSRServer {
+    // TODO: make a enum with integer
+/*    enum InfoField {
+        TYPE, SRC, DST, SENTTIME, MSG, PATH
+    }*/
+
     final static int PORT = 5008;
-    final static String SPLITER = "_";
+    final static String SPLITER = "/";
+    final static String PATH_SPLITER = "-";
     final static String TAG_RCV = "[RCV]";
     final static String TAG_SEND = "[SEND]";
     final static String TAG_TIME = "[TIME]";
@@ -16,73 +25,90 @@ public class DSRServer {
     final static String[] ALL_ADDRS = {
             "192.168.210.174", "192.168.210.180", "192.168.210.185",
             "192.168.210.196", "192.168.210.197"};
-    private static String localAddress;
-    private static String logFile;
+    // 0: type, 1: src, 2: dst, 3: time, 4: msg, 5: path
+    final static int[] INFO_FIELD = {0, 1, 2, 3, 4, 5};
+    final static String[] MSG_TYPE = {"RREQ", "RREP", "DATA"};
+    private static String myIP;
+    private static String logName;
 
     public static void main(String[] args) throws IOException {
         DatagramSocket serverSocket = new DatagramSocket(PORT);
         HashSet<String> receivedMessages = new HashSet<>();
         HashSet<String> neighbors = new HashSet<>();
-        byte[] receiveData = new byte[1024];
-        byte[] sendData = new byte[1024];
+        HashMap<String, String> dstPathMap = new HashMap<>(); // K: dst, V: path
+        byte[] receiveBuffer = new byte[1024];
+        byte[] sendBuffer = new byte[1024];
 
-        localAddress = getIP("wlan0");
-        logFile = localAddress + ".txt";
+        myIP = getIP("en0");
+        logName = myIP + ".txt";
+        File log = new File(logName);
+        System.out.println("Delete previous log: " + log.delete());
 
         while (true) {
-            DatagramPacket receivePacket = new DatagramPacket(receiveData, receiveData.length);
+            DatagramPacket receivePacket = new DatagramPacket(receiveBuffer, receiveBuffer.length);
             serverSocket.receive(receivePacket);
             String receiveTime = LocalTime.now().toString(); // 接收时间
-
-            String data = new String(receivePacket.getData());
-            writeToLog(TAG_RCV + data);
-            System.out.println(TAG_RCV + data);
+            String receiveData = new String(receivePacket.getData());
+            writeToLog(TAG_RCV + receiveTime + receiveData);
 
             // if the message has not been received before, then broadcast it
-            if (!receivedMessages.contains(data)) {
-                receivedMessages.add(data);
-                // 0: src, 1: dst, 2: time, 3: msg
-                String[] infos = data.split(SPLITER);
-                String msg = infos[3];
-                String dst = infos[1];
-                InetAddress IPAddress = receivePacket.getAddress();
-                neighbors.add(IPAddress.getHostName());
-                print(neighbors);
+            if (!receivedMessages.contains(receiveData)) {
+                // receivedMessages.add(receiveData);
+                String dataType = getInfo(receiveData, 0);
+                String dataSrc = getInfo(receiveData, 1);
+                String dataDst = getInfo(receiveData, 2);
+                String srcTime = getInfo(receiveData, 3);
+                String dataMsg = getInfo(receiveData, 4);
+                String dataPath = getInfo(receiveData, 5);
+                InetAddress prevInetAddress = receivePacket.getAddress();
 
-                // continue broadcast if dst is not local address
-                if (!localAddress.equals(dst)) {
-                    int port = receivePacket.getPort();
-                    System.out.println("received port:" + port);
-                    sendData = data.getBytes();
-                    DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, InetAddress.getByName(BROADCAST_IP), PORT);
-                    serverSocket.setBroadcast(true);
-                    serverSocket.send(sendPacket);
-                    String sendTime =LocalTime.now().toString(); //发送时间
-                    System.out.println(TAG_SEND + data);
-                    writeToLog(TAG_SEND + data);
-                    System.out.println("Not Destination, continue to broadcast ");
-
-                    // log time for latency calculation
-                    String latencyData = localAddress+" receives data from "+ IPAddress.getHostAddress()
-                            +" at: "+receiveTime+" and rebroadcasts at: "+sendTime;
-                    writeToLog(TAG_TIME + latencyData);
-
-                } else{
-                    System.out.println("Reached destination, will not broadcast ");
-                    String latencyData = localAddress+" receives data from "+ IPAddress.getHostAddress()
-                            +" at: "+receiveTime;
-                    writeToLog(TAG_TIME + latencyData);
+                if (dataType.equals(MSG_TYPE[0])) {
+                    // RREQ reach destination and only reply the first received RREQ
+                    if (dataDst.equals(myIP)) {
+                        String replyPath = dataPath + PATH_SPLITER + myIP;
+                        String replyData = buildData(MSG_TYPE[1], myIP, dataSrc, LocalTime.now().toString(), dataMsg, replyPath); // 1: RREP
+                        sendBuffer = replyData.getBytes();
+                        DatagramPacket sendPacket = new DatagramPacket(sendBuffer, sendBuffer.length, prevInetAddress, PORT);
+                        serverSocket.send(sendPacket);
+                        dstPathMap.put(dataSrc, reversePath(replyPath));
+                    } else { // not destination, broadcast the message the myIP added to path
+                        String addedPath = dataPath + PATH_SPLITER + myIP;
+                        String broadcastData = buildData(dataType, dataSrc, dataDst, srcTime, dataMsg, addedPath);
+                        sendBuffer = broadcastData.getBytes();
+                        DatagramPacket sendPacket = new DatagramPacket(sendBuffer, sendBuffer.length, InetAddress.getByName(BROADCAST_IP), PORT);
+                        serverSocket.setBroadcast(true);
+                        serverSocket.send(sendPacket);
+                        serverSocket.setBroadcast(false); // disable Broadcast after broadcast
+                    }
+                } else if (dataType.equals(MSG_TYPE[1])) { // RREP
+                    if (dataDst.equals(myIP)) {
+                        // add path to map
+                        dstPathMap.put(dataSrc, dataPath);
+                    } else {
+                        String forwardIP = findReverseForwardIP(dataPath, myIP);
+                        sendBuffer = receivePacket.getData();
+                        DatagramPacket sendPacket = new DatagramPacket(sendBuffer, sendBuffer.length, InetAddress.getByName(forwardIP), PORT);
+                        serverSocket.send(sendPacket);
+                    }
+                } else { // DATA
+                    if (dataDst.equals(myIP)) {
+                        writeToLog(TAG_RCV + receiveData);
+                    } else {
+                        String forwardIP = findForwardIP(dataPath, myIP);
+                        sendBuffer = receivePacket.getData();
+                        DatagramPacket sendPacket = new DatagramPacket(sendBuffer, sendBuffer.length, InetAddress.getByName(forwardIP), PORT);
+                        serverSocket.send(sendPacket);
+                    }
                 }
             } else {
-                System.out.println("Message Duplicated, will not broadcast");
+                writeToLog("Message Duplicated, will not broadcast");
             }
         }
-
-
     }
 
     private static void writeToLog(String tag) throws IOException {
-        FileOutputStream fos = new FileOutputStream(logFile, true);
+        System.out.println(tag);
+        FileOutputStream fos = new FileOutputStream(logName, true);
         fos.write(tag.getBytes());
         fos.write("\r".getBytes());
         fos.close();
@@ -103,5 +129,59 @@ public class DSRServer {
         }
     }
 
+    public static String getInfo(String data, int field) {
+        // 0: type, 1: src, 2: dst, 3: time, 4: msg, 5: path
+        String[] info = data.split(SPLITER);
+        return info[field];
+    }
+
+    public static String reversePath(String path) {
+        String[] addr = path.split(PATH_SPLITER);
+        // DONE: finish reverse path
+        int size = addr.length;
+        StringBuilder reversePath = new StringBuilder();
+        for (int i = size - 1; i >= 0; i -= 1) {
+            // TODO: find a smarter way to put all strings at once
+            reversePath.append(addr[i]);
+            if (i != 0) {
+                reversePath.append(PATH_SPLITER);
+            }
+        }
+        return reversePath.toString();
+    }
+
+    public static String buildData(String dataType, String dataSrc, String dataDst, String dataMsg, String srcTime, String path) {
+        String replyData = dataType + SPLITER
+                + dataSrc + SPLITER
+                + dataDst + SPLITER
+                + srcTime + SPLITER
+                + dataMsg + SPLITER
+                + path;
+        return replyData;
+    }
+
+    // ex. we are F, {S_E_F_J_D} -> J
+    public static String findForwardIP(String path, String myIP) {
+        // DONE: finish find Forward IP
+        String[] addr = path.split(PATH_SPLITER);
+        for (int i = 0; i < addr.length; i += 1) {
+            if (myIP.equals(addr[i])) {
+                return addr[i + 1];
+            }
+        }
+        return null;
+    }
+
+    // ex. we are F, {S_E_F_J_D} -> E
+    public  static String findReverseForwardIP(String path, String my) {
+        // DONE: finish reverse Forward IP
+        String[] addr = path.split(PATH_SPLITER);
+        for (int i = addr.length - 1; i >= 0 ; i -= 1) {
+            if (myIP.equals(addr[i])) {
+                return addr[i - 1];
+            }
+        }
+        return null;
+    }
 }
 
