@@ -2,6 +2,7 @@
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.*;
+import java.time.LocalTime;
 import java.util.Enumeration;
 import java.util.HashSet;
 import java.util.Set;
@@ -15,6 +16,7 @@ public class PiUDPServer {
     final static String SPLITER = "_";
     final static String TAG_RCV = "[RCV]";
     final static String TAG_SEND = "[SEND]";
+    final static String TAG_TIME = "[TIME]";
     final static String BROADCAST_IP = "192.168.210.255";
     final static String[] ALL_ADDRS = {
             "192.168.210.174", "192.168.210.180", "192.168.210.185",
@@ -35,6 +37,7 @@ public class PiUDPServer {
         while (true) {
             DatagramPacket receivePacket = new DatagramPacket(receiveData, receiveData.length);
             serverSocket.receive(receivePacket);
+            String receiveTime = LocalTime.now().toString(); // 接收时间
 
             String data = new String(receivePacket.getData());
             writeToLog(TAG_RCV + data);
@@ -59,11 +62,21 @@ public class PiUDPServer {
                     DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, InetAddress.getByName(BROADCAST_IP), PORT);
                     serverSocket.setBroadcast(true);
                     serverSocket.send(sendPacket);
+                    String sendTime =LocalTime.now().toString(); //发送时间
                     System.out.println(TAG_SEND + data);
                     writeToLog(TAG_SEND + data);
                     System.out.println("Not Destination, continue to broadcast ");
+
+                    // log time for latency calculation
+                    String latencyData = localAddress+" receives data from "+ IPAddress.getHostAddress()
+                                        +" at: "+receiveTime+" and rebroadcasts at: "+sendTime;
+                    writeToLog(TAG_TIME + latencyData);
+
                 } else{
                     System.out.println("Reached destination, will not broadcast ");
+                    String latencyData = localAddress+" receives data from "+ IPAddress.getHostAddress()
+                                        +" at: "+receiveTime;
+                    writeToLog(TAG_TIME + latencyData);
                 }
             } else {
                 System.out.println("Message Duplicated, will not broadcast");
