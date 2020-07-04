@@ -5,7 +5,6 @@ import java.net.*;
 import java.time.LocalTime;
 import java.util.*;
 
-
 public class DSRServer {
     // TODO: make a enum with integer
 /*    enum InfoField {
@@ -27,85 +26,98 @@ public class DSRServer {
     final static String[] MSG_TYPE = {"RREQ", "RREP", "DATA"};
     private static String myIP;
     private static String logName;
+    private DatagramSocket serverSocket;
+    private HashSet<String> receivedMessages;
+    private HashSet<String> neighbors;
+    private HashMap<String, String> dstPathMap;
 
-    public static void main(String[] args) throws IOException {
-        DatagramSocket serverSocket = new DatagramSocket(PORT);
-        HashSet<String> receivedMessages = new HashSet<>();
-        HashSet<String> neighbors = new HashSet<>();
-        HashMap<String, String> dstPathMap = new HashMap<>(); // K: dst, V: path
-        byte[] receiveBuffer = new byte[1024];
-        byte[] sendBuffer = new byte[1024];
-
+    DSRServer() throws SocketException {
+        serverSocket = new DatagramSocket(PORT);
+        receivedMessages = new HashSet<>();
+        neighbors = new HashSet<>();
+        dstPathMap = new HashMap<>(); // K: dst, V: path
         myIP = getIP("en0");
         logName = myIP + ".txt";
         File log = new File(logName);
         System.out.println("Delete previous log: " + log.delete());
+    }
+
+    public void DSR() throws IOException {
+        byte[] receiveBuffer = new byte[1024];
+        byte[] sendBuffer = new byte[1024];
+
+        DatagramPacket receivePacket = new DatagramPacket(receiveBuffer, receiveBuffer.length);
+        serverSocket.receive(receivePacket);
+        String receiveTime = LocalTime.now().toString(); // 接收时间
+        String receiveData = new String(receivePacket.getData());
+        writeToLog(TAG_RCV + receiveTime + receiveData);
+
+        // if the message has not been received before, then broadcast it
+        if (!receivedMessages.contains(receiveData)) {
+            // receivedMessages.add(receiveData);
+            String dataType = getInfo(receiveData, 0);
+            String dataSrc = getInfo(receiveData, 1);
+            String dataDst = getInfo(receiveData, 2);
+            String srcTime = getInfo(receiveData, 3);
+            String dataMsg = getInfo(receiveData, 4);
+            String dataPath = getInfo(receiveData, 5);
+            InetAddress prevInetAddress = receivePacket.getAddress();
+
+            if (dataType.equals(MSG_TYPE[0])) {
+                // RREQ reach destination and only reply the first received RREQ
+                if (dataDst.equals(myIP)) {
+                    String replyPath = dataPath + PATH_SPLITER + myIP;
+                    String replyData = buildData(MSG_TYPE[1], myIP, dataSrc, LocalTime.now().toString(), dataMsg, replyPath); // 1: RREP
+                    sendBuffer = replyData.getBytes();
+                    DatagramPacket sendPacket = new DatagramPacket(sendBuffer, sendBuffer.length, prevInetAddress, PORT);
+                    serverSocket.send(sendPacket);
+                    dstPathMap.put(dataSrc, reversePath(replyPath));
+                    print(dstPathMap);
+                } else { // not destination, broadcast the message the myIP added to path
+                    String addedPath = dataPath + PATH_SPLITER + myIP;
+                    String broadcastData = buildData(dataType, dataSrc, dataDst, srcTime, dataMsg, addedPath);
+                    sendBuffer = broadcastData.getBytes();
+                    DatagramPacket sendPacket = new DatagramPacket(sendBuffer, sendBuffer.length, InetAddress.getByName(BROADCAST_IP), PORT);
+                    serverSocket.setBroadcast(true);
+                    serverSocket.send(sendPacket);
+                    serverSocket.setBroadcast(false); // disable Broadcast after broadcast
+                }
+            } else if (dataType.equals(MSG_TYPE[1])) { // RREP
+                if (dataDst.equals(myIP)) {
+                    // received RREP
+                    writeToLog(TAG_RCV + receiveData);
+                    // add path to map
+                    dstPathMap.put(dataSrc, dataPath);
+                    print(dstPathMap);
+                } else {
+                    String forwardIP = findReverseForwardIP(dataPath, myIP);
+                    sendBuffer = receivePacket.getData();
+                    DatagramPacket sendPacket = new DatagramPacket(sendBuffer, sendBuffer.length, InetAddress.getByName(forwardIP), PORT);
+                    serverSocket.send(sendPacket);
+                }
+            } else { // DATA
+                if (dataDst.equals(myIP)) {
+                    writeToLog(TAG_RCV + receiveData);
+                } else {
+                    String forwardIP = findForwardIP(dataPath, myIP);
+                    sendBuffer = receivePacket.getData();
+                    DatagramPacket sendPacket = new DatagramPacket(sendBuffer, sendBuffer.length, InetAddress.getByName(forwardIP), PORT);
+                    serverSocket.send(sendPacket);
+                }
+            }
+        } else {
+            writeToLog("Message Duplicated, will not broadcast");
+        }
+
+    }
+
+    private void listen() throws IOException {
 
         while (true) {
-            DatagramPacket receivePacket = new DatagramPacket(receiveBuffer, receiveBuffer.length);
-            serverSocket.receive(receivePacket);
-            String receiveTime = LocalTime.now().toString(); // 接收时间
-            String receiveData = new String(receivePacket.getData());
-            writeToLog(TAG_RCV + receiveTime + receiveData);
-
-            // if the message has not been received before, then broadcast it
-            if (!receivedMessages.contains(receiveData)) {
-                // receivedMessages.add(receiveData);
-                String dataType = getInfo(receiveData, 0);
-                String dataSrc = getInfo(receiveData, 1);
-                String dataDst = getInfo(receiveData, 2);
-                String srcTime = getInfo(receiveData, 3);
-                String dataMsg = getInfo(receiveData, 4);
-                String dataPath = getInfo(receiveData, 5);
-                InetAddress prevInetAddress = receivePacket.getAddress();
-
-                if (dataType.equals(MSG_TYPE[0])) {
-                    // RREQ reach destination and only reply the first received RREQ
-                    if (dataDst.equals(myIP)) {
-                        String replyPath = dataPath + PATH_SPLITER + myIP;
-                        String replyData = buildData(MSG_TYPE[1], myIP, dataSrc, LocalTime.now().toString(), dataMsg, replyPath); // 1: RREP
-                        sendBuffer = replyData.getBytes();
-                        DatagramPacket sendPacket = new DatagramPacket(sendBuffer, sendBuffer.length, prevInetAddress, PORT);
-                        serverSocket.send(sendPacket);
-                        dstPathMap.put(dataSrc, reversePath(replyPath));
-                        print(dstPathMap);
-                    } else { // not destination, broadcast the message the myIP added to path
-                        String addedPath = dataPath + PATH_SPLITER + myIP;
-                        String broadcastData = buildData(dataType, dataSrc, dataDst, srcTime, dataMsg, addedPath);
-                        sendBuffer = broadcastData.getBytes();
-                        DatagramPacket sendPacket = new DatagramPacket(sendBuffer, sendBuffer.length, InetAddress.getByName(BROADCAST_IP), PORT);
-                        serverSocket.setBroadcast(true);
-                        serverSocket.send(sendPacket);
-                        serverSocket.setBroadcast(false); // disable Broadcast after broadcast
-                    }
-                } else if (dataType.equals(MSG_TYPE[1])) { // RREP
-                    if (dataDst.equals(myIP)) {
-                        // received RREP
-                        writeToLog(TAG_RCV + receiveData);
-                        // add path to map
-                        dstPathMap.put(dataSrc, dataPath);
-                        print(dstPathMap);
-                    } else {
-                        String forwardIP = findReverseForwardIP(dataPath, myIP);
-                        sendBuffer = receivePacket.getData();
-                        DatagramPacket sendPacket = new DatagramPacket(sendBuffer, sendBuffer.length, InetAddress.getByName(forwardIP), PORT);
-                        serverSocket.send(sendPacket);
-                    }
-                } else { // DATA
-                    if (dataDst.equals(myIP)) {
-                        writeToLog(TAG_RCV + receiveData);
-                    } else {
-                        String forwardIP = findForwardIP(dataPath, myIP);
-                        sendBuffer = receivePacket.getData();
-                        DatagramPacket sendPacket = new DatagramPacket(sendBuffer, sendBuffer.length, InetAddress.getByName(forwardIP), PORT);
-                        serverSocket.send(sendPacket);
-                    }
-                }
-            } else {
-                writeToLog("Message Duplicated, will not broadcast");
-            }
+            DSR();
         }
     }
+
 
     private static void writeToLog(String tag) throws IOException {
         System.out.println(tag);
@@ -185,7 +197,7 @@ public class DSRServer {
     }
 
     // ex. we are F, {S_E_F_J_D} -> E
-    public  static String findReverseForwardIP(String path, String my) {
+    public static String findReverseForwardIP(String path, String myIP) {
         // DONE: finish reverse Forward IP
         String[] addr = path.split(PATH_SPLITER);
         for (int i = addr.length - 1; i >= 0 ; i -= 1) {
@@ -195,5 +207,11 @@ public class DSRServer {
         }
         return null;
     }
-}
 
+    public static void main(String[] args) throws IOException {
+
+        DSRServer myServer = new DSRServer();
+        myServer.listen();
+
+    }
+}
