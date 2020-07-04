@@ -3,10 +3,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.*;
 import java.time.LocalTime;
-import java.util.Enumeration;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 
 
 public class DSRServer {
@@ -71,6 +68,7 @@ public class DSRServer {
                         DatagramPacket sendPacket = new DatagramPacket(sendBuffer, sendBuffer.length, prevInetAddress, PORT);
                         serverSocket.send(sendPacket);
                         dstPathMap.put(dataSrc, reversePath(replyPath));
+                        print(dstPathMap);
                     } else { // not destination, broadcast the message the myIP added to path
                         String addedPath = dataPath + PATH_SPLITER + myIP;
                         String broadcastData = buildData(dataType, dataSrc, dataDst, srcTime, dataMsg, addedPath);
@@ -82,8 +80,11 @@ public class DSRServer {
                     }
                 } else if (dataType.equals(MSG_TYPE[1])) { // RREP
                     if (dataDst.equals(myIP)) {
+                        // received RREP
+                        writeToLog(TAG_RCV + receiveData);
                         // add path to map
                         dstPathMap.put(dataSrc, dataPath);
+                        print(dstPathMap);
                     } else {
                         String forwardIP = findReverseForwardIP(dataPath, myIP);
                         sendBuffer = receivePacket.getData();
@@ -126,6 +127,17 @@ public class DSRServer {
         System.out.println("All neighbors:");
         for (String s : set) {
             System.out.println(s);
+        }
+    }
+
+    public static void print(Map<String, String> map) {
+        System.out.println("All forward tables");
+        Set<Map.Entry<String, String>> set = map.entrySet();
+        Iterator entryIterator = map.entrySet().iterator();
+        while (entryIterator.hasNext()) {
+            Map.Entry<String, String> mapElement = (Map.Entry) entryIterator.next();
+            System.out.println("Destination: " + mapElement.getKey());
+            System.out.println("Path: " + mapElement.getValue());
         }
     }
 
