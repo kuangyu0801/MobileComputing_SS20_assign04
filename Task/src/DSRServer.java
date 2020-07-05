@@ -6,10 +6,6 @@ import java.time.LocalTime;
 import java.util.*;
 
 public class DSRServer {
-    // TODO: make a enum with integer
-/*    enum InfoField {
-        TYPE, SRC, DST, SENTTIME, MSG, PATH
-    }*/
     final static String[] INET_NAME = {"en0", "wlan0"};
     final static int PORT = 5008;
     final static String SPLITER = "/";
@@ -50,6 +46,7 @@ public class DSRServer {
 
         DatagramPacket receivePacket = new DatagramPacket(receiveBuffer, receiveBuffer.length);
         serverSocket.receive(receivePacket);
+        LocalTime receivedTime = LocalTime.now();
         String receiveData = new String(receivePacket.getData());
         receiveData = receiveData.trim();
         writeToLog(TAG_RCV, receivePacket.getAddress().toString(), receiveData);
@@ -73,7 +70,8 @@ public class DSRServer {
                 // RREQ reach destination and only reply the first received RREQ
                 if (dataDst.equals(myIP)) {
                     String replyPath = dataPath + PATH_SPLITER + myIP;
-                    String replyData = buildData(MSG_TYPE[1], myIP, dataSrc, LocalTime.now().toString(), dataMsg, replyPath); // 1: RREP
+                    // RREP carries the origianl RREQ srcTime for calculating route discovery time
+                    String replyData = buildData(MSG_TYPE[1], myIP, dataSrc, srcTime, dataMsg, replyPath); // 1: RREP
                     sendBuffer = replyData.getBytes();
                     DatagramPacket sendPacket = new DatagramPacket(sendBuffer, sendBuffer.length, prevInetAddress, PORT);
                     serverSocket.send(sendPacket);
@@ -96,6 +94,9 @@ public class DSRServer {
                     writeToLog(TAG_RCV, prevInetAddress.toString(), receiveData);
                     // add path to map
                     dstPathMap.put(dataSrc, dataPath);
+                    LocalTime sentTime = LocalTime.parse(srcTime);
+                    Long latency = receivedTime.toNanoOfDay() - sentTime.toNanoOfDay();
+                    writeToLog("[Discovery Time]" + dataSrc + "-" + myIP + ":" + latency);
                     print(dstPathMap);
                 } else {
                     String forwardIP = findReverseForwardIP(dataPath, myIP);
