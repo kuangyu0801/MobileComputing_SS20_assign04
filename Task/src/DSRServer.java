@@ -48,7 +48,7 @@ public class DSRServer {
 
         DatagramPacket receivePacket = new DatagramPacket(receiveBuffer, receiveBuffer.length);
         serverSocket.receive(receivePacket);
-        String receiveTime = LocalTime.now().toString(); // 接收时间
+        String receiveTime = LocalTime.now().toString();
         String receiveData = new String(receivePacket.getData());
         writeToLog(TAG_RCV + receiveTime + receiveData);
 
@@ -145,9 +145,9 @@ public class DSRServer {
     public static void print(Map<String, String> map) {
         System.out.println("All forward tables");
         Set<Map.Entry<String, String>> set = map.entrySet();
-        Iterator entryIterator = map.entrySet().iterator();
+        Iterator<Map.Entry<String, String>> entryIterator = map.entrySet().iterator();
         while (entryIterator.hasNext()) {
-            Map.Entry<String, String> mapElement = (Map.Entry) entryIterator.next();
+            Map.Entry<String, String> mapElement = (Map.Entry<String, String>) entryIterator.next();
             System.out.println("Destination: " + mapElement.getKey());
             System.out.println("Path: " + mapElement.getValue());
         }

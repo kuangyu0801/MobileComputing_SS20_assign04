@@ -10,6 +10,10 @@ java PiUDPClient 3
 196-197-180-174
      |   |    |
      |- 185 - |
+
+final static String[] ALL_ADDRS = {
+            "192.168.210.174", "192.168.210.180", "192.168.210.185",
+            "192.168.210.196", "192.168.210.197"};
  ```    
 # Open Issue
 1. 使用以下只會得到TCP Loopback interface, 是不是要用etho0的ip位置當log file才比較好
