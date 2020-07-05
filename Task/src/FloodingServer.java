@@ -111,6 +111,12 @@ public class FloodingServer {
             receiveData = receiveData.trim();
             InetAddress senderIP = receivePacket.getAddress();
             writeToLog(TAG_RCV, senderIP.toString(), receiveData);
+            String nbrTime = getInfo(receiveData, 5);
+            LocalTime sentTime = LocalTime.parse(nbrTime);
+            Long latency = receivedTime.toNanoOfDay() - sentTime.toNanoOfDay();
+            writeToLog("Delay time between" + senderIP + "-" + myIP + ":" + latency);
+            neighbors.add(senderIP.toString());
+            print(neighbors, "[All Neighbors]");
 
             if (!receivedMessages.contains(filterOutPath(receiveData))) {
                 receivedMessages.add(filterOutPath(receiveData));
@@ -122,12 +128,7 @@ public class FloodingServer {
                 String dataDst = getInfo(receiveData, 2);
                 String srcTime = getInfo(receiveData, 3);
                 String dataMsg = getInfo(receiveData, 4);
-                String nbrTime = getInfo(receiveData, 5);
-                LocalTime sentTime = LocalTime.parse(nbrTime);
-                Long latency = receivedTime.toNanoOfDay() - sentTime.toNanoOfDay();
-                writeToLog("Delay time between" + senderIP + "-" + myIP + ":" + latency);
-                neighbors.add(senderIP.toString());
-                print(neighbors, "[All Neighbors]");
+
                 if (dataDst.equals(myIP)) { // Broadcast reach destination
                     writeToLog("FLOODING TOKEN reached destination");
                 } else { // not destination, broadcast with msg updated to current time
