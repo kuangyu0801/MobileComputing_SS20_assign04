@@ -11,7 +11,8 @@ public class DSRClient {
     final static String SPLITER = "/";
     final static String PATH_SPLITER = "-";
     final static String TAG_RCV = "[RCV]";
-    final static String TAG_SEND = "[SEND]";
+    final static String TAG_SEND = "[SND]";
+    final static String TAG_BROADCASET = "[BRD]";
     final static String TAG_TIME = "[TIME]";
     final static String BROADCAST_IP = "192.168.210.255";
     final static String[] ALL_ADDRS = {
@@ -46,11 +47,11 @@ public class DSRClient {
         serverSocket.receive(receivePacket);
         String receiveTime = LocalTime.now().toString();
         String receiveData = new String(receivePacket.getData());
-        writeToLog(TAG_RCV + receiveTime + receiveData);
+        writeToLog(TAG_RCV, receivePacket.getAddress().toString(), receiveData);
 
         // if the message has not been received before, then broadcast it
         if (!receivedMessages.contains(receiveData)) {
-            // receivedMessages.add(receiveData);
+            receivedMessages.add(receiveData);
             String dataType = getInfo(receiveData, 0);
             String dataSrc = getInfo(receiveData, 1);
             String dataDst = getInfo(receiveData, 2);
@@ -76,12 +77,13 @@ public class DSRClient {
                     DatagramPacket sendPacket = new DatagramPacket(sendBuffer, sendBuffer.length, InetAddress.getByName(BROADCAST_IP), PORT);
                     serverSocket.setBroadcast(true);
                     serverSocket.send(sendPacket);
+                    writeToLog(TAG_BROADCASET, BROADCAST_IP, broadcastData);
                     serverSocket.setBroadcast(false); // disable Broadcast after broadcast
                 }
             } else if (dataType.equals(MSG_TYPE[1])) { // RREP
                 if (dataDst.equals(myIP)) {
                     // received RREP
-                    writeToLog(TAG_RCV + receiveData);
+                    writeToLog(TAG_RCV, prevInetAddress.toString(), receiveData);
                     // add path to map
                     dstPathMap.put(dataSrc, dataPath);
                     print(dstPathMap);
@@ -90,15 +92,17 @@ public class DSRClient {
                     sendBuffer = receivePacket.getData();
                     DatagramPacket sendPacket = new DatagramPacket(sendBuffer, sendBuffer.length, InetAddress.getByName(forwardIP), PORT);
                     serverSocket.send(sendPacket);
+                    writeToLog(TAG_SEND, forwardIP, receiveData);
                 }
             } else { // DATA
                 if (dataDst.equals(myIP)) {
-                    writeToLog(TAG_RCV + receiveData);
+                    writeToLog(TAG_RCV, prevInetAddress.toString(), receiveData);
                 } else {
                     String forwardIP = findForwardIP(dataPath, myIP);
                     sendBuffer = receivePacket.getData();
                     DatagramPacket sendPacket = new DatagramPacket(sendBuffer, sendBuffer.length, InetAddress.getByName(forwardIP), PORT);
                     serverSocket.send(sendPacket);
+                    writeToLog(TAG_SEND, forwardIP, receiveData);
                 }
             }
         } else {
@@ -116,14 +120,15 @@ public class DSRClient {
             sendBuffer = sendData.getBytes();
             DatagramPacket sendPacket = new DatagramPacket(sendBuffer, sendBuffer.length, InetAddress.getByName(forwardIP), PORT);
             serverSocket.send(sendPacket);
-
+            writeToLog(TAG_SEND, forwardIP, sendData);
         } else {
             // dst not in routing table, need to send RREQ first
-            String sendData = buildData(MSG_TYPE[0], myIP, dst, "This is a RREQ", LocalTime.now().toString(), "");
+            String sendData = buildData(MSG_TYPE[0], myIP, dst, "This is a RREQ", LocalTime.now().toString(), myIP);
             sendBuffer = sendData.getBytes();
             DatagramPacket sendPacket = new DatagramPacket(sendBuffer, sendBuffer.length, InetAddress.getByName(BROADCAST_IP), PORT);
             serverSocket.setBroadcast(true);
             serverSocket.send(sendPacket);
+            writeToLog(TAG_BROADCASET, BROADCAST_IP, sendData);
             // listen for RREP
             while (true) {
                 // waiting for DSR result;
@@ -139,6 +144,7 @@ public class DSRClient {
             sendBuffer = sendData.getBytes();
             sendPacket = new DatagramPacket(sendBuffer, sendBuffer.length, InetAddress.getByName(forwardIP), PORT);
             serverSocket.send(sendPacket);
+            writeToLog(TAG_SEND, forwardIP, sendData);
         }
     }
 
@@ -147,6 +153,15 @@ public class DSRClient {
         System.out.println(tag);
         FileOutputStream fos = new FileOutputStream(logName, true);
         fos.write(tag.getBytes());
+        fos.write("\r".getBytes());
+        fos.close();
+    }
+
+    private static void writeToLog(String tag, String addrres, String content) throws IOException {
+        String text = LocalTime.now() + " | " + tag + " | " + addrres + " | " + content;
+        System.out.println(text);
+        FileOutputStream fos = new FileOutputStream(logName, true);
+        fos.write(text.getBytes());
         fos.write("\r".getBytes());
         fos.close();
     }
