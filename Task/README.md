@@ -7,9 +7,11 @@ javac PiUDPClient.java
 java PiUDPClient 3
 
 javac DSRServer.java
+java DSRServer 1 
 
 javac DSRClient.java
 java DSRClient 1 1
+java DSRClient 1 4
 ```
 # Network TOPOLOGY
 ```

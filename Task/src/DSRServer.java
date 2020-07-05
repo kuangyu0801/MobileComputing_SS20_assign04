@@ -56,8 +56,8 @@ public class DSRServer {
         print(receivedMessages);
 
         // if the message has not been received before, then broadcast it
-        if (!receivedMessages.contains(receiveData)) {
-            receivedMessages.add(receiveData);
+        if (!receivedMessages.contains(filterOutPath(receiveData))) {
+            receivedMessages.add(filterOutPath(receiveData));
             writeToLog("DSR[Add Message] " + receiveData);
             print(receivedMessages);
 
@@ -159,8 +159,6 @@ public class DSRServer {
         writeToLog("Number of message: " + set.size());
         for (String s : set) {
             writeToLog(s);
-            writeToLog(String.valueOf(s.length()));
-            writeToLog(String.valueOf(s.hashCode()));
         }
     }
 
@@ -231,6 +229,11 @@ public class DSRServer {
             }
         }
         return null;
+    }
+
+    public static String filterOutPath(String data) {
+        String[] info = data.split(SPLITER);
+        return info[0] + SPLITER + info[1] + SPLITER + info[2] + SPLITER+ info[3] + SPLITER + info[4];
     }
 
     public static void main(String[] args) throws IOException {

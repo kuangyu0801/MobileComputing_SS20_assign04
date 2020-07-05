@@ -52,8 +52,8 @@ public class DSRClient {
         print(receivedMessages);
 
         // if the message has not been received before, then broadcast it
-        if (!receivedMessages.contains(receiveData)) {
-            receivedMessages.add(receiveData);
+        if (!receivedMessages.contains(filterOutPath(receiveData))) {
+            receivedMessages.add(filterOutPath(receiveData));
             writeToLog("DSR[Add Message] " + receiveData);
             print(receivedMessages);
 
@@ -137,13 +137,12 @@ public class DSRClient {
             serverSocket.setBroadcast(true);
             serverSocket.send(sendPacket);
             writeToLog(TAG_BROADCASET, BROADCAST_IP, sendData);
-            receivedMessages.add(sendData);
+            receivedMessages.add(filterOutPath(sendData));
             writeToLog("[Add Message] " + sendData);
             print(receivedMessages);
             // listen for RREP
             while (true) {
                 // waiting for DSR result;
-                writeToLog("");
                 DSR();
                 if (dstPathMap.containsKey(dst)) {
                     writeToLog("dst is added to forward table");
@@ -193,8 +192,6 @@ public class DSRClient {
         writeToLog("Number of message: " + set.size());
         for (String s : set) {
             writeToLog(s);
-            writeToLog(String.valueOf(s.length()));
-            writeToLog(String.valueOf(s.hashCode()));
         }
     }
 
@@ -265,6 +262,11 @@ public class DSRClient {
             }
         }
         return null;
+    }
+
+    public static String filterOutPath(String data) {
+        String[] info = data.split(SPLITER);
+        return info[0] + SPLITER + info[1] + SPLITER + info[2] + SPLITER+ info[3] + SPLITER + info[4];
     }
 
     public static void main(String[] args) throws IOException {
