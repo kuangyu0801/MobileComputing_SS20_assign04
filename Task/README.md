@@ -1,9 +1,15 @@
 # 常用command
 ```
 javac PiUDPServer.java
+
 java PiUDPServer
 javac PiUDPClient.java
 java PiUDPClient 3
+
+javac DSRServer.java
+
+javac DSRClient.java
+java DSRClient 1 1
 ```
 # Network TOPOLOGY
 ```
