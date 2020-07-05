@@ -116,14 +116,14 @@ public class DSRClient {
         if (dstPathMap.containsKey(dst)) {
             // dst already in routing table
             String forwardIP = findForwardIP(dstPathMap.get(dst), myIP);
-            String sendData = buildData(MSG_TYPE[2], myIP, dst, msg, LocalTime.now().toString(), dstPathMap.get(dst));
+            String sendData = buildData(MSG_TYPE[2], myIP, dst, LocalTime.now().toString(), msg, dstPathMap.get(dst));
             sendBuffer = sendData.getBytes();
             DatagramPacket sendPacket = new DatagramPacket(sendBuffer, sendBuffer.length, InetAddress.getByName(forwardIP), PORT);
             serverSocket.send(sendPacket);
             writeToLog(TAG_SEND, forwardIP, sendData);
         } else {
             // dst not in routing table, need to send RREQ first
-            String sendData = buildData(MSG_TYPE[0], myIP, dst, "This is a RREQ", LocalTime.now().toString(), myIP);
+            String sendData = buildData(MSG_TYPE[0], myIP, dst, LocalTime.now().toString(), "This is a RREQ", myIP);
             sendBuffer = sendData.getBytes();
             DatagramPacket sendPacket = new DatagramPacket(sendBuffer, sendBuffer.length, InetAddress.getByName(BROADCAST_IP), PORT);
             serverSocket.setBroadcast(true);
@@ -140,7 +140,7 @@ public class DSRClient {
 
             // when dst is in routing, send DATA again
             String forwardIP = findForwardIP(dstPathMap.get(dst), myIP);
-            sendData = buildData(MSG_TYPE[2], myIP, dst, msg, LocalTime.now().toString(), dstPathMap.get(dst));
+            sendData = buildData(MSG_TYPE[2], myIP, dst, LocalTime.now().toString(), msg, dstPathMap.get(dst));
             sendBuffer = sendData.getBytes();
             sendPacket = new DatagramPacket(sendBuffer, sendBuffer.length, InetAddress.getByName(forwardIP), PORT);
             serverSocket.send(sendPacket);
@@ -213,7 +213,7 @@ public class DSRClient {
         return reversePath.toString();
     }
 
-    public static String buildData(String dataType, String dataSrc, String dataDst, String dataMsg, String srcTime, String path) {
+    public static String buildData(String dataType, String dataSrc, String dataDst, String srcTime, String dataMsg, String path) {
         String replyData = dataType + SPLITER
                 + dataSrc + SPLITER
                 + dataDst + SPLITER
