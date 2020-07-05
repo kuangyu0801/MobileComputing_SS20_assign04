@@ -5,7 +5,9 @@ import java.net.*;
 import java.time.LocalTime;
 import java.util.*;
 // TODO: 是不是可以用封裝的概念
+// TODO: 是不是可以用既成概念, 讓server, client 都繼承DSR
 public class DSRClient {
+    final static String[] INET_NAME = {"en0", "wlan0"};
     final static int PORT = 5008;
     final static String SPLITER = "/";
     final static String PATH_SPLITER = "-";
@@ -26,12 +28,12 @@ public class DSRClient {
     private HashSet<String> neighbors;
     private HashMap<String, String> dstPathMap;
 
-    DSRClient() throws SocketException {
+    DSRClient(String inet_name) throws SocketException {
         serverSocket = new DatagramSocket(PORT);
         receivedMessages = new HashSet<>();
         neighbors = new HashSet<>();
         dstPathMap = new HashMap<>(); // K: dst, V: path
-        myIP = getIP("en0");
+        myIP = getIP(inet_name);
         logName = myIP + ".txt";
         File log = new File(logName);
         System.out.println("Delete previous log: " + log.delete());
@@ -142,7 +144,6 @@ public class DSRClient {
     }
 
 
-
     private static void writeToLog(String tag) throws IOException {
         System.out.println(tag);
         FileOutputStream fos = new FileOutputStream(logName, true);
@@ -233,10 +234,10 @@ public class DSRClient {
     }
 
     public static void main(String[] args) throws IOException {
-
-        DSRClient myClient = new DSRClient();
-        myClient.sendData(ALL_ADDRS[Integer.parseInt(args[0])], "Hello World!");
+        // 0 for PC, 1 for RaspberryPi
+        DSRClient myClient = new DSRClient(INET_NAME[Integer.parseInt(args[0])]);
+        // 0~5 for different address
+        myClient.sendData(ALL_ADDRS[Integer.parseInt(args[1])], "Hello World!");
 
     }
-
 }

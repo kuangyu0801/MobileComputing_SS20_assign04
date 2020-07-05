@@ -10,7 +10,7 @@ public class DSRServer {
 /*    enum InfoField {
         TYPE, SRC, DST, SENTTIME, MSG, PATH
     }*/
-
+    final static String[] INET_NAME = {"en0", "wlan0"};
     final static int PORT = 5008;
     final static String SPLITER = "/";
     final static String PATH_SPLITER = "-";
@@ -31,12 +31,12 @@ public class DSRServer {
     private HashSet<String> neighbors;
     private HashMap<String, String> dstPathMap;
 
-    DSRServer() throws SocketException {
+    DSRServer(String inet_name) throws SocketException {
         serverSocket = new DatagramSocket(PORT);
         receivedMessages = new HashSet<>();
         neighbors = new HashSet<>();
         dstPathMap = new HashMap<>(); // K: dst, V: path
-        myIP = getIP("en0");
+        myIP = getIP(inet_name);
         logName = myIP + ".txt";
         File log = new File(logName);
         System.out.println("Delete previous log: " + log.delete());
@@ -209,8 +209,8 @@ public class DSRServer {
     }
 
     public static void main(String[] args) throws IOException {
-
-        DSRServer myServer = new DSRServer();
+        // 0 for PC, 1 for RaspberryPi
+        DSRServer myServer = new DSRServer(INET_NAME[Integer.parseInt(args[0])]);
         myServer.listen();
 
     }
